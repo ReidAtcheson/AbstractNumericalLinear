@@ -1,4 +1,4 @@
-module type ComplexNumbers = sig  
+module type ComplexNumber = sig  
   type ret
   type imt
   type t
@@ -9,17 +9,31 @@ module type ComplexNumbers = sig
   val conj  : t -> t
   val (<*>) : t -> t -> t
   val (<+>) : t -> t -> t
+  val inv   : t -> t
 
 
   val zero : t
   val one  : t
 
-
-
-
 end;;
+
+
+
 
 
 module type HilbertSpace = sig
-  type a
+  type vect
+  type ct
+
+  val nullvector : vect
+  val scalarprod : ct -> vect -> vect
+  val vectoradd  : vect -> vect -> vect
+  val innerprod  : vect -> vect -> ct
+
 end;;
+
+
+
+module MakeHilbertSpace(C : ComplexNumber) : HilbertSpace
+
+
