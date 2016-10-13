@@ -1,5 +1,5 @@
 main : 
-	ocamlbuild  'main.native'
+	ocamlbuild  'floatarrays.native'
 
 
 
@@ -10,5 +10,5 @@ main :
 
 
 clean :	
-	rm -rf ./main.native
+	rm -rf ./floatarrays.native
 	rm -rf ./_build

@@ -25,6 +25,13 @@ module FloatComplex : ComplexNumber with type ret=float with type imt=float  =
       let a=c.re in
       let b=c.im in
       {re=a/.(a*.a+.b*.b);im=0.0 -. b /. (a*.a +. b*.b)}
+    let neg c = 
+      let a=c.re in
+      let b=c.im in
+      {re=0.0-.a;im=0.0-.b}
+
+    (*Note: very wrong, but only really needed for positive reals.*)
+    let sqrt z = mk (sqrt (re z)) 0.0
 
     let zero   = {re=0.0;im=0.0}
     let one    = {re=1.0;im=0.0}
@@ -37,7 +44,7 @@ module FloatComplex : ComplexNumber with type ret=float with type imt=float  =
 ;;
 
 module ArrayHilbert : HilbertSpace with type vect=FloatComplex.t array with type ct = FloatComplex.t = struct
-  let m=10
+  let m=2
 
   type vect = FloatComplex.t array
   type ct   = FloatComplex.t
@@ -56,6 +63,13 @@ module ArrayHilbert : HilbertSpace with type vect=FloatComplex.t array with type
     Array.fold_left (FloatComplex.add) (FloatComplex.zero) xy
   ;;
 
+  let norm x = FloatComplex.sqrt (innerprod x x)
+
+  let show x = 
+    let catarr x y = x ^ "," ^ y in
+    let str = Array.fold_left catarr ("") (Array.map FloatComplex.show x) in
+    "[" ^ str ^ "]"
+
 
 end;;
 
@@ -67,10 +81,11 @@ module MyOrth = MakeOrthogonalizable (FloatComplex) (ArrayHilbert)
 
 
 
-let x = Array.make 10 (FloatComplex.mk 0.0 1.0)
-let y = Array.make 10 (FloatComplex.mk 0.0 1.0)
+let x = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0]
+let y = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0]
 
-let () = 
-  let z=MyOrth.inprd2sum x y in
-  print_endline (FloatComplex.show z)
+let xs = MyOrth.orthogonalize2 x y
+
+let () = print_endline (ArrayHilbert.show (List.nth xs 0))
+let () = print_endline (ArrayHilbert.show (List.nth xs 1))
 
