@@ -156,7 +156,7 @@ module PolynomialHilbert : HilbertSpace with type vect=poly with type ct = Float
   type vect = poly
   type ct   = FloatComplex.t
   let nullvector = Val (FloatComplex.mk 0.0 0.0)
-  let basis = [Val FloatComplex.one;Var]
+  let rec basis i = if i==0 then (Val (FloatComplex.mk 1.0 0.0)) else (Mul (basis (i-1), Var))
   let scalarmul s p  = Mul (Val s,p)
   let add x y = Add (x,y)
   let innerprod p1 p2 = integrate a b (Mul (p1,conj p2))
@@ -178,8 +178,9 @@ let (<*>) p1 p2 = Mul (p1,p2)
 
 
 
-let orth = MyOrth.orthogonalize2 x (x <*> x)
+let orth = MyOrth.orthogonalize (Array.of_list [mk (FloatComplex.mk 1.0 0.0); x;(x <*> x)])
 
-let () = print_endline (PolynomialHilbert.show (List.nth orth 0))
-let () = print_endline (PolynomialHilbert.show (List.nth orth 1))
+let () = print_endline (PolynomialHilbert.show (orth.(0)))
+let () = print_endline (PolynomialHilbert.show (orth.(1)))
+let () = print_endline (PolynomialHilbert.show (orth.(2)))
 

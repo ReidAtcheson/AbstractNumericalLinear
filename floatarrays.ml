@@ -49,14 +49,15 @@ module FloatComplex : ComplexNumber with type ret=float with type imt=float  =
 ;;
 
 module ArrayHilbert : HilbertSpace with type vect=FloatComplex.t array with type ct = FloatComplex.t = struct
-  let m=2
+  let m=5
 
   type vect = FloatComplex.t array
   type ct   = FloatComplex.t
   let nullvector = Array.make m (FloatComplex.mk 0.0 0.0)
-  let basis      = 
-    let nv = Array.make m (FloatComplex.mk 0.0 0.0) in
-    [nv;nv]
+  let basis i    = 
+    let b = Array.make m (FloatComplex.mk 0.0 0.0) in
+    let ()= b.(i)<-(FloatComplex.mk 1.0 0.0) in
+    b
   let scalarmul  x y = 
     let mulx z = FloatComplex.mul x z in
     Array.map mulx y
@@ -84,11 +85,23 @@ module MyOrth = MakeOrthogonalizable (FloatComplex) (ArrayHilbert)
 
 
 
-let x = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0]
-let y = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0]
+let x1 = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0]
+let x2 = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0]
+let x3 = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0]
+let x4 = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0]
+let x5 = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0]
 
-let xs = MyOrth.orthogonalize2 x y
+let xs = MyOrth.orthogonalize (Array.of_list [x1;x2;x3;x4;x5])
 
-let () = print_endline (ArrayHilbert.show (List.nth xs 0))
-let () = print_endline (ArrayHilbert.show (List.nth xs 1))
+
+let f x = print_endline (FloatComplex.show x)
+let () = Array.iter f xs.(0)
+let () = print_endline "\n"
+let () = Array.iter f xs.(1)
+let () = print_endline "\n"
+let () = Array.iter f xs.(2)
+let () = print_endline "\n"
+let () = Array.iter f xs.(3)
+let () = print_endline "\n"
+let () = Array.iter f xs.(4)
 

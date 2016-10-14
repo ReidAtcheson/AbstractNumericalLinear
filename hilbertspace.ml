@@ -31,7 +31,7 @@ module type HilbertSpace = sig
   type vect
   type ct 
   val nullvector : vect
-  val basis      : vect list
+  val basis      : int -> vect
   val scalarmul  : ct -> vect -> vect
   val       add  : vect -> vect -> vect
   val innerprod  : vect -> vect -> ct
@@ -44,7 +44,8 @@ module type Orthogonalizable = sig
   type ct
   type vect
   val orthogonalize2 : vect -> vect -> vect list
-  val orthogonalize  : vect list -> vect list
+  val orthogonalize  : vect array -> vect array
+  val adj            : int -> (vect -> vect) -> vect -> vect
 end;;
 
 
@@ -60,5 +61,35 @@ module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C
     [nx;ny]
 
 
-  let orthogonalize xs = xs
+  let orthogonalize xs = 
+    let normalize u = H.scalarmul (C.inv (H.norm u)) u in
+    let m = Array.length xs in
+    let qs=xs in
+    for k = 0 to (m-1) do
+      let w = ref xs.(k) in
+      for j = 0 to (k-1) do
+        let rjk = H.innerprod (!w) qs.(j) in
+        w := H.add (!w) (H.scalarmul (C.neg rjk) qs.(j));
+      done;
+      qs.(k) <- normalize !w
+    done;
+    qs
+
+
+  let adj (n:int) (a:vect->vect) (u:vect) = 
+    let bs     = Array.make n (H.nullvector) in
+    let f i x  = bs.(i) <- H.basis i in 
+    Array.iteri f bs;
+    let obs = orthogonalize bs in
+    let l v   = H.innerprod (a v) u in
+    let z     = ref H.nullvector in
+    let g i = z := H.add (!z) (H.scalarmul (C.conj (l (obs.(i)))) (obs.(i))) in
+    for i = 0 to n do
+      g i;
+    done;
+    !z
+
+
+
+    
 end;;
