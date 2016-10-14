@@ -30,8 +30,13 @@ module FloatComplex : ComplexNumber with type ret=float with type imt=float  =
       let b=c.im in
       {re=0.0-.a;im=0.0-.b}
 
-    (*Note: very wrong, but only really needed for positive reals.*)
-    let sqrt z = mk (sqrt (re z)) 0.0
+    let sqrt z = 
+      let rez = z.re in
+      let imz = z.im in
+      let zz  = {Complex.re=rez;im=imz} in
+      let sqrtz = Complex.sqrt zz in
+      mk (sqrtz.Complex.re) (sqrtz.Complex.im)
+      
 
     let zero   = {re=0.0;im=0.0}
     let one    = {re=1.0;im=0.0}
@@ -73,8 +78,6 @@ module ArrayHilbert : HilbertSpace with type vect=FloatComplex.t array with type
 
 end;;
 
-
-(*module MyOrth : Orthogonalizable = MakeOrthogonalizable (FloatComplex : ComplexNumber with type t=FloatComplex.t) (ArrayHilbert : HilbertSpace with type vect=ArrayHilbert.vect);;*)
 
 module MyOrth = MakeOrthogonalizable (FloatComplex) (ArrayHilbert)
 
