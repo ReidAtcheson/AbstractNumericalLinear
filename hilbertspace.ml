@@ -77,17 +77,20 @@ module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C
 
 
   let adj (n:int) (a:vect->vect) (u:vect) = 
-    let bs     = Array.make n (H.nullvector) in
-    let f i x  = bs.(i) <- H.basis i in 
-    Array.iteri f bs;
-    let obs = orthogonalize bs in
-    let l v   = H.innerprod (a v) u in
-    let z     = ref H.nullvector in
-    let g i = z := H.add (!z) (H.scalarmul (C.conj (l (obs.(i)))) (obs.(i))) in
+    let bs     = Array.make (n+1) (H.nullvector) in
     for i = 0 to n do
-      g i;
+      bs.(i) <- H.basis i;
     done;
-    !z
+    let obs = orthogonalize bs in
+    for i = 0 to n do
+      print_endline (H.show obs.(i));
+    done;
+    let l v   = H.innerprod (a v) u in
+    let ls    = Array.map l obs in
+    let cls   = Array.map C.conj ls in
+    let ccls  = Array.map2 H.scalarmul cls obs in
+    let z     = Array.fold_left H.add H.nullvector ccls in
+    z
 
 
 

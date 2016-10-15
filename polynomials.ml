@@ -170,6 +170,12 @@ module MyOrth = MakeOrthogonalizable (FloatComplex) (PolynomialHilbert)
   
 
 
+let rec diff p = 
+  match p with
+    Val z       -> Val (FloatComplex.mk 0.0 0.0)
+  | Var         -> Val (FloatComplex.mk 1.0 0.0)
+  | Add (p1,p2) -> Add ((diff p1),(diff p2))
+  | Mul (p1,p2) -> Add ((Mul ((diff p1),p2)),(Mul (p1,(diff p2))))
 
 let mk z        = Val z
 let x           = Var
@@ -178,9 +184,21 @@ let (<*>) p1 p2 = Mul (p1,p2)
 
 
 
+
+
+let adjdiff = MyOrth.adj 2 diff
+
 let orth = MyOrth.orthogonalize (Array.of_list [mk (FloatComplex.mk 1.0 0.0); x;(x <*> x)])
 
-let () = print_endline (PolynomialHilbert.show (orth.(0)))
-let () = print_endline (PolynomialHilbert.show (orth.(1)))
-let () = print_endline (PolynomialHilbert.show (orth.(2)))
+let sadj = normal (adjdiff x)
+
+let () = print_endline (PolynomialHilbert.show x)
+let () = print_endline (PolynomialHilbert.show (diff x))
+let () = print_endline (PolynomialHilbert.show (diff (x<*>x<*>x)))
+
+
+let () = 
+  for k = 0 to ((Array.length sadj)-1) do
+    print_endline (FloatComplex.show sadj.(k))
+  done;
 
