@@ -56,7 +56,9 @@ module ArrayHilbert : HilbertSpace with type vect=FloatComplex.t array with type
   let nullvector = Array.make m (FloatComplex.mk 0.0 0.0)
   let basis i    = 
     let b = Array.make m (FloatComplex.mk 0.0 0.0) in
-    let ()= b.(i)<-(FloatComplex.mk 1.0 0.0) in
+    for j = 0 to i do
+      b.(j)<-(FloatComplex.mk 1.0 0.0);
+    done;
     b
   let scalarmul  x y = 
     let mulx z = FloatComplex.mul x z in
@@ -86,22 +88,33 @@ module MyOrth = MakeOrthogonalizable (FloatComplex) (ArrayHilbert)
 
 
 let x1 = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0]
-let x2 = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0]
-let x3 = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0]
-let x4 = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0]
-let x5 = Array.of_list [FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 1.0 0.0]
+let x2 = Array.of_list [FloatComplex.mk 0.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0]
+let x3 = Array.of_list [FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0]
+let x4 = Array.of_list [FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 1.0 0.0;FloatComplex.mk 0.0 0.0]
+let x5 = Array.of_list [FloatComplex.mk 5.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 0.0 0.0;FloatComplex.mk 1.0 0.0]
 
 let xs = MyOrth.orthogonalize (Array.of_list [x1;x2;x3;x4;x5])
+let ys = (Array.of_list [x1;x2;x3;x4;x5])
+
+let a u = 
+  let v = ref (Array.make 5 (FloatComplex.mk 0.0 0.0)) in
+  for i = 0 to 4 do
+    v := ArrayHilbert.add !v (ArrayHilbert.scalarmul u.(i) ys.(i));
+  done;
+  !v
+;;
 
 
-let f x = print_endline (FloatComplex.show x)
-let () = Array.iter f xs.(0)
-let () = print_endline "\n"
-let () = Array.iter f xs.(1)
-let () = print_endline "\n"
-let () = Array.iter f xs.(2)
-let () = print_endline "\n"
-let () = Array.iter f xs.(3)
-let () = print_endline "\n"
-let () = Array.iter f xs.(4)
+let e i = 
+  let m = Array.make 5 (FloatComplex.mk 0.0 0.0) in
+  m.(i) <- FloatComplex.mk 1.0 0.0;
+  m
 
+let adja1 = MyOrth.adj 4 a (e 4)
+let a1    = a (e 4)
+
+
+
+let na = MyOrth.opnorm 10 4 a
+
+let () = print_endline (FloatComplex.show na)

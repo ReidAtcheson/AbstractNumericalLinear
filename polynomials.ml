@@ -118,9 +118,13 @@ let normal p =
   List.iter inc dgs;
   arr
 
+let normal2expr arr = 
+  let rec basis i = if i==0 then (Val (FloatComplex.mk 1.0 0.0)) else (Mul (basis (i-1), Var)) in
+  let ps = Array.mapi (fun i x -> Mul (Val x,(basis i))) arr in
+  Array.fold_left (fun x y -> Add (x,y)) (Val (FloatComplex.mk 0.0 0.0)) ps
 
 
-
+let filterpoly p = normal2expr (normal p)
 
 let integrate a b p = 
   let pir = normal p in
@@ -158,7 +162,7 @@ module PolynomialHilbert : HilbertSpace with type vect=poly with type ct = Float
   let nullvector = Val (FloatComplex.mk 0.0 0.0)
   let rec basis i = if i==0 then (Val (FloatComplex.mk 1.0 0.0)) else (Mul (basis (i-1), Var))
   let scalarmul s p  = Mul (Val s,p)
-  let add x y = Add (x,y)
+  let add x y = filterpoly (Add (x,y))
   let innerprod p1 p2 = integrate a b (Mul (p1,conj p2))
   let norm p = FloatComplex.sqrt (innerprod p p)
 
@@ -186,19 +190,17 @@ let (<*>) p1 p2 = Mul (p1,p2)
 
 
 
-let adjdiff = MyOrth.adj 2 diff
-
+let adjdiff = MyOrth.adj 6 diff
 let orth = MyOrth.orthogonalize (Array.of_list [mk (FloatComplex.mk 1.0 0.0); x;(x <*> x)])
 
-let sadj = normal (adjdiff x)
+let sadj = normal (adjdiff x<*>x)
 
-let () = print_endline (PolynomialHilbert.show x)
-let () = print_endline (PolynomialHilbert.show (diff x))
-let () = print_endline (PolynomialHilbert.show (diff (x<*>x<*>x)))
+let ip1  = PolynomialHilbert.innerprod (diff (x<*>x<*>x<+>x)) (x<*>x<+>x)
+let ip2  = PolynomialHilbert.innerprod ((x<*>x<*>x<+>x)) (adjdiff (x<*>x<+>x))
 
+let ndiff = MyOrth.opnorm 100 8 diff
 
-let () = 
-  for k = 0 to ((Array.length sadj)-1) do
-    print_endline (FloatComplex.show sadj.(k))
-  done;
+let () = print_endline (FloatComplex.show ip1)
+let () = print_endline (FloatComplex.show ip2)
+let () = print_endline (FloatComplex.show ndiff)
 

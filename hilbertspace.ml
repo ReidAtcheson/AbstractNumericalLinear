@@ -46,6 +46,7 @@ module type Orthogonalizable = sig
   val orthogonalize2 : vect -> vect -> vect list
   val orthogonalize  : vect array -> vect array
   val adj            : int -> (vect -> vect) -> vect -> vect
+  val opnorm         : int -> int -> (vect -> vect) -> ct
 end;;
 
 
@@ -88,6 +89,27 @@ module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C
     let ccls  = Array.map2 H.scalarmul cls obs in
     let z     = Array.fold_left H.add H.nullvector ccls in
     z
+  ;;
+
+  let opnorm maxit n a = 
+    let normalize u = H.scalarmul (C.inv (H.norm u)) u in
+    let m = ref H.nullvector in
+    for i = 0 to n do
+      m := H.add (!m) (H.basis i)
+    done;
+    m := normalize !m;
+    let adja = adj n a in
+    let adja_a u = adja (a u) in
+    let b = adja_a in
+
+    for j=0 to maxit do
+      m := normalize (b !m)
+    done;
+    C.sqrt (H.norm (b !m))
+
+
+
+
 
 
 
