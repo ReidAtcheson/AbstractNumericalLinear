@@ -82,9 +82,6 @@ module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C
       bs.(i) <- H.basis i;
     done;
     let obs = orthogonalize bs in
-    for i = 0 to n do
-      print_endline (H.show obs.(i));
-    done;
     let l v   = H.innerprod (a v) u in
     let ls    = Array.map l obs in
     let cls   = Array.map C.conj ls in
