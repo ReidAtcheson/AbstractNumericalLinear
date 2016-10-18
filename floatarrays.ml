@@ -83,6 +83,7 @@ end;;
 
 
 module MyOrth = MakeOrthogonalizable (FloatComplex) (ArrayHilbert)
+module MyOp   = MakeOperatorSpace    (FloatComplex) (ArrayHilbert) (ArrayHilbert)
 
 
 
@@ -110,11 +111,11 @@ let e i =
   m.(i) <- FloatComplex.mk 1.0 0.0;
   m
 
-let adja1 = MyOrth.adj 4 a (e 4)
+let adja1 = MyOp.adj 4 a (e 4)
 let a1    = a (e 4)
 
 
 
-let na = MyOrth.opnorm 10 4 a
+let na = MyOp.opnorm 10 4 a
 
 let () = print_endline (FloatComplex.show na)
