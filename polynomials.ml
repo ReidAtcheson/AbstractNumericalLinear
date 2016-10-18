@@ -1,60 +1,13 @@
 
 open Hilbertspace;;
-
-module FloatComplex : ComplexNumber with type ret=float with type imt=float  = 
-  struct
-    type ret = float
-    type imt = float
-    type t   = { re : ret; im : imt;}
-
-    let mk re im = {re=re;im=im;}
-
-    let re c = c.re
-    let im c = c.im
-
-    let conj c = {re=c.re; im=(0.0 -. c.im);}
-
-    let mul c1 c2 = 
-      let a=c1.re in
-      let b=c1.im in
-      let c=c2.re in
-      let d=c2.im in    
-      {re=a*.c-.b*.d;im=a*.d+.b*.c}
-    let add c1 c2 = {re=c1.re +. c2.re;im=c1.im +. c2.im}
-
-    let inv c = 
-      let a=c.re in
-      let b=c.im in
-      {re=a/.(a*.a+.b*.b);im=0.0 -. b /. (a*.a +. b*.b)}
-    let neg c = 
-      let a=c.re in
-      let b=c.im in
-      {re=0.0-.a;im=0.0-.b}
-
-    let sqrt z = 
-      let rez = z.re in
-      let imz = z.im in
-      let zz  = {Complex.re=rez;im=imz} in
-      let sqrtz = Complex.sqrt zz in
-      mk (sqrtz.Complex.re) (sqrtz.Complex.im)
+open Mcomplex;;
 
 
-    let zero   = {re=0.0;im=0.0}
-    let one    = {re=1.0;im=0.0}
-
-    let show z = (string_of_float (re z)) ^ " + " ^ (string_of_float (im z)) ^ "i"
-
-
-
-  end
-;;
 
 let rec pow n x = 
   match n with
     0 -> FloatComplex.mk 1.0 0.0
   | _ -> FloatComplex.mul x (pow (n-1) x)
-
-
 
 type poly  = 
     Val of FloatComplex.t
@@ -66,8 +19,6 @@ type poly  =
 (*Note: taken from http://stackoverflow.com/a/10893700/412345*)
 let cartesian l l' = 
     List.concat (List.map (fun e -> List.map (fun e' -> (e,e')) l') l)
-
-
 
 let rec conj p = 
   match p with
@@ -139,16 +90,12 @@ let integrate a b p =
   Array.iteri f pir;
   !tmp
 
-
-
 let rec string_of_poly p = 
   match p with
-    Val z           -> "(" ^ (FloatComplex.show z) ^ ")"
+    Val z           -> "(" ^ (FloatComplex.to_string z) ^ ")"
   | Var             -> "x"
   | Add (p1,p2)     -> "(" ^ (string_of_poly p1) ^ "+" ^(string_of_poly p2) ^ ")"
   | Mul (p1,p2)     -> "(" ^ (string_of_poly p1) ^ "*" ^(string_of_poly p2) ^ ")"
-
-
 let rec string_of_poly_list ps =  List.fold_left (fun p1 p2 -> p1 ^" + "^ p2) "" (List.map string_of_poly ps)
 
 
@@ -166,11 +113,10 @@ module PolynomialHilbert : HilbertSpace with type vect=poly with type ct = Float
   let innerprod p1 p2 = integrate a b (Mul (p1,conj p2))
   let norm p = FloatComplex.sqrt (innerprod p p)
 
-  let show p = string_of_poly p
+  let to_string p = string_of_poly p
 end;;
 
 
-module MyOrth = MakeOrthogonalizable (FloatComplex) (PolynomialHilbert)
 module MyOp   = MakeOperatorSpace (FloatComplex) (PolynomialHilbert) (PolynomialHilbert)
   
 
@@ -192,7 +138,7 @@ let (<*>) p1 p2 = Mul (p1,p2)
 
 
 let adjdiff = MyOp.adj 6 diff
-let orth = MyOrth.orthogonalize (Array.of_list [mk (FloatComplex.mk 1.0 0.0); x;(x <*> x)])
+(*let orth = MyOrth.orthogonalize (Array.of_list [mk (FloatComplex.mk 1.0 0.0); x;(x <*> x)])*)
 
 let sadj = normal (adjdiff x<*>x)
 
@@ -200,8 +146,38 @@ let ip1  = PolynomialHilbert.innerprod (diff (x<*>x<*>x<+>x)) (x<*>x<+>x)
 let ip2  = PolynomialHilbert.innerprod ((x<*>x<*>x<+>x)) (adjdiff (x<*>x<+>x))
 
 
+
+
 let () = 
-  for i = 1 to 10 do
-    let ndiff = MyOp.opnorm 100 i diff in
-    print_endline (FloatComplex.show (pow 2 ndiff));
-  done;
+  print_endline "TESTING OPERATOR NORMS"
+;;
+
+let () = 
+  let i = 1 in 
+  let ndiffrt   = MyOp.opnorm 100 i diff in
+  let ndiff     = FloatComplex.mul (ndiffrt) (ndiffrt) in
+  let correct = FloatComplex.almost_equal ndiff (FloatComplex.mk 3.0 0.0) (1e-5) in
+  if correct then (print_endline "Derivative at i=1 correct (PASS)") else (print_endline "Derivative at i=1 incorrect (FAIL)")
+
+let () = 
+  let i = 2 in 
+  let ndiffrt   = MyOp.opnorm 100 i diff in
+  let ndiff     = FloatComplex.mul (ndiffrt) (ndiffrt) in
+  let correct = FloatComplex.almost_equal ndiff (FloatComplex.mk 15.0 0.0) (1e-5) in
+  if correct then (print_endline "Derivative at i=2 correct (PASS)") else (print_endline "Derivative at i=2 incorrect (FAIL)")
+
+let () = 
+  let i = 3 in 
+  let ndiffrt   = MyOp.opnorm 100 i diff in
+  let ndiff     = FloatComplex.mul (ndiffrt) (ndiffrt) in
+  let correct = FloatComplex.almost_equal ndiff (FloatComplex.mk 42.53122 0.0) (1e-5) in
+  if correct then (print_endline "Derivative at i=3 correct (PASS)") else (print_endline "Derivative at i=3 incorrect (FAIL)")
+
+let () = 
+  let i = 4 in 
+  let ndiffrt   = MyOp.opnorm 100 i diff in
+  let ndiff     = FloatComplex.mul (ndiffrt) (ndiffrt) in
+  let correct = FloatComplex.almost_equal ndiff (FloatComplex.mk 95.058782 0.0) (1e-5) in
+  if correct then (print_endline "Derivative at i=4 correct (PASS)") else (print_endline "Derivative at i=4 incorrect (FAIL)");
+
+

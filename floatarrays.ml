@@ -1,52 +1,6 @@
 open Hilbertspace;;
+open Mcomplex;;
 
-module FloatComplex : ComplexNumber with type ret=float with type imt=float  = 
-  struct
-    type ret = float
-    type imt = float
-    type t   = { re : ret; im : imt;}
-
-    let mk re im = {re=re;im=im;}
-
-    let re c = c.re
-    let im c = c.im
-
-    let conj c = {re=c.re; im=(0.0 -. c.im);}
-
-    let mul c1 c2 = 
-      let a=c1.re in
-      let b=c1.im in
-      let c=c2.re in
-      let d=c2.im in    
-      {re=a*.c-.b*.d;im=a*.d+.b*.c}
-    let add c1 c2 = {re=c1.re +. c2.re;im=c1.im +. c2.im}
-
-    let inv c = 
-      let a=c.re in
-      let b=c.im in
-      {re=a/.(a*.a+.b*.b);im=0.0 -. b /. (a*.a +. b*.b)}
-    let neg c = 
-      let a=c.re in
-      let b=c.im in
-      {re=0.0-.a;im=0.0-.b}
-
-    let sqrt z = 
-      let rez = z.re in
-      let imz = z.im in
-      let zz  = {Complex.re=rez;im=imz} in
-      let sqrtz = Complex.sqrt zz in
-      mk (sqrtz.Complex.re) (sqrtz.Complex.im)
-      
-
-    let zero   = {re=0.0;im=0.0}
-    let one    = {re=1.0;im=0.0}
-
-    let show z = (string_of_float (re z)) ^ " + " ^ (string_of_float (im z)) ^ "i"
-
-
-
-  end
-;;
 
 module ArrayHilbert : HilbertSpace with type vect=FloatComplex.t array with type ct = FloatComplex.t = struct
   let m=5
@@ -73,9 +27,9 @@ module ArrayHilbert : HilbertSpace with type vect=FloatComplex.t array with type
 
   let norm x = FloatComplex.sqrt (innerprod x x)
 
-  let show x = 
+  let to_string x = 
     let catarr x y = x ^ "," ^ y in
-    let str = Array.fold_left catarr ("") (Array.map FloatComplex.show x) in
+    let str = Array.fold_left catarr ("") (Array.map FloatComplex.to_string x) in
     "[" ^ str ^ "]"
 
 
@@ -118,4 +72,4 @@ let a1    = a (e 4)
 
 let na = MyOp.opnorm 10 4 a
 
-let () = print_endline (FloatComplex.show na)
+let () = print_endline (FloatComplex.to_string na)

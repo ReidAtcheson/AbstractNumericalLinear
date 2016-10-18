@@ -23,13 +23,16 @@ module type ComplexNumber = sig
   val  neg  : t -> t
   (*Square root*)
   val sqrt : t -> t
+  (*Complex absolute value*)
+  val  abs  : t -> t
   (*Additive identity*)
   val zero : t
   (*Multiplicative identity*)
   val one  : t
+  val almost_equal : t -> t -> float -> bool
 
   (* "to_string" convenience function*)
-  val show : t -> string
+  val to_string : t -> string
 end;;
 
 
@@ -52,7 +55,7 @@ module type HilbertSpace = sig
   (*Vector Norm*)
   val norm       : vect -> ct
   (*Convenience printing function*)
-  val show       : vect -> string
+  val to_string  : vect -> string
 end;;
 
 
