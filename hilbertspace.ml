@@ -68,7 +68,8 @@ module type Orthogonalizable = sig
   val orthogonalize2 : vect -> vect -> vect list
   (*Orthogonalize array of vectors*)
   val orthogonalize  : vect array -> vect array
-  (*Compute adjoint of linear operator*)
+  (*QR factorization of array of vectors*)
+  val qr : vect array -> (vect array) * (ct array array)
 end;;
 
 
@@ -112,6 +113,27 @@ module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C
       qs.(k) <- normalize !w
     done;
     qs
+
+
+  let qr xs = 
+    let normalize u = H.scalarmul (C.inv (H.norm u)) u in
+    let m = Array.length xs in
+    let r = Array.make_matrix m m (C.zero) in
+    let qs=xs in
+    for k = 0 to (m-1) do
+      let w = ref xs.(k) in
+      for j = 0 to (k-1) do
+        let rjk = H.innerprod (!w) qs.(j) in        
+        w := H.add (!w) (H.scalarmul (C.neg rjk) qs.(j));
+        r.(j).(k) <- rjk;
+      done;
+      r.(k).(k) <- H.norm !w;
+      qs.(k) <- normalize !w;
+    done;
+    (qs,r)
+
+
+
 
 
 end;;
