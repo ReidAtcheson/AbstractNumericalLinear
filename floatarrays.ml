@@ -65,11 +65,13 @@ let e i =
   m.(i) <- FloatComplex.mk 1.0 0.0;
   m
 
+
+
 let adja1 = MyOp.adj 4 a (e 4)
 let a1    = a (e 4)
 
-
-
 let na = MyOp.opnorm 10 4 a
+
+let qr_xs = MyOrth.qr xs
 
 let () = print_endline (FloatComplex.to_string na)

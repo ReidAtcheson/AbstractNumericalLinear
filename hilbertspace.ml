@@ -84,7 +84,6 @@ module type Operator = sig
   val adj            : int -> (vect1 -> vect2) -> vect2 -> vect1
   (*Compute operator norm of linear operator*)
   val opnorm         : int -> int -> (vect1 -> vect2) -> ct
-
 end;;
 
 
@@ -167,7 +166,7 @@ module MakeOperatorSpace (C : ComplexNumber) (H1 : HilbertSpace with type ct=C.t
    
 
 
-
+        
   (*let opnorm maxit n a = C.zero*)
   let opnorm maxit n a = 
     let normalize u = H1.scalarmul (C.inv (H1.norm u)) u in

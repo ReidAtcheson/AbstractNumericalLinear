@@ -2,10 +2,10 @@
 all : floatarrays polynomials
 
 floatarrays : 
-	ocamlbuild  'floatarrays.native'
+	ocamlbuild -tag annot 'floatarrays.native'
 
 polynomials : 
-	ocamlbuild  'polynomials.native'
+	ocamlbuild  -tag annot 'polynomials.native'
 
 
 
@@ -17,7 +17,6 @@ polynomials :
 
 
 
+
 clean :	
-	rm -rf ./polynomials.native
-	rm -rf ./floatarrays.native
-	rm -rf ./_build
+	ocamlbuild -clean
