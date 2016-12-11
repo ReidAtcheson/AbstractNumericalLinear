@@ -1,0 +1,7 @@
+*.swp
+*.cmi
+*.cmo
+*.native
+*.o
+_build
+_build/*
