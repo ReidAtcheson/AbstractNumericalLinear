@@ -58,6 +58,103 @@ module type HilbertSpace = sig
   val to_string  : vect -> string
 end;;
 
+module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) = struct
+
+  type t = Vect of H.vect | Num of H.ct
+
+  let vect_to_t x = Vect x
+  let vect_from_t x = match x with
+    Vect v -> v
+  | Num  c -> raise (Failure "Expected a vector")
+
+
+
+  let nullvector = Vect (H.nullvector)
+  let basis i = Vect (H.basis i)
+  let innerprod x y = match x,y with
+   Vect u,Vect   v -> Num (H.innerprod u v)
+  | Vect u, Num   c -> raise (Failure "Inner product only supports vectors")
+  | Num  c, Vect  u -> raise (Failure "Inner product only supports vectors")
+  | Num  c, Num   d -> raise (Failure "Inner product only supports vectors")
+
+  let norm x = match x with
+    Vect u -> Num (H.norm u)
+    |Num  c -> raise (Failure "Vector norm attempted of number")
+
+  let to_string x = match x with
+     Vect u -> H.to_string u
+    |Num  c -> C.to_string c
+
+
+
+
+  let ( * ) x y = match x,y with
+    Vect u,Vect   v -> raise (Failure "Tried to multiply two vectors")
+  | Vect u, Num   c -> Vect (H.scalarmul c u)
+  | Num  c, Vect  u -> Vect (H.scalarmul c u)
+  | Num  c, Num   d -> Num  (C.mul c d)
+
+  let ( + ) x y = match x,y with
+    Vect u,Vect   v -> Vect (H.add u v)
+  | Vect u, Num   c -> raise (Failure "Tried to add number to vector")
+  | Num  c, Vect  u -> raise (Failure "Tried to add number to vector")
+  | Num  c, Num   d -> Num (C.add c d)
+
+
+  let ( - ) x y = match x,y with
+    Vect u,Vect   v -> Vect (H.add u (H.scalarmul (C.neg C.one) v))
+  | Vect u, Num   c -> raise (Failure "Tried to add number to vector")
+  | Num  c, Vect  u -> raise (Failure "Tried to add number to vector")
+  | Num  c, Num   d -> Num (C.add c (C.mul (C.neg C.one) d))
+
+
+  let ( / ) x y = match x,y with
+    Vect u,Vect   v -> raise (Failure "Attempted to divide one vector into another vector")
+  | Vect u, Num   c -> Vect (H.scalarmul (C.inv c) u)
+  | Num  c, Vect  u -> raise (Failure "Attempted to divide number by vector")
+  | Num  c, Num   d -> Num (C.mul (C.inv d) c)
+
+
+
+
+
+
+
+
+end;;
+
+  (*
+module HilbertSpaceDSL (H : HilbertSpace) = struct
+  type t = Vect of H.vect | Num of H.ct 
+  (*Null vector*)
+  let nullvector : t = Vect H.nullvector
+  (*Basis functions. basis i = i-th basis function*)
+  let basis i = Vect (H.basis i)
+  (*Scalar multiplication: constant times a vector*) 
+  let ( * ) x y = match x with
+    Vect u -> (match y with
+               Vect v -> Vect v
+              | Num  a -> (H.mul a u) )
+  | Num a  -> (match y with
+               Vect v -> (H.mul a v)
+              | Num a -> Num a )
+  (*Vector addition*)
+  (*val       add  : t -> t -> t*)
+  let (+) x y = match x with
+    Vect u -> (match y with
+              Vect v -> (H.add u v))
+
+  (*Inner product*)
+  val innerprod  : t -> t -> t
+  (*Vector Norm*)
+  val norm       : t -> t
+  (*Convenience printing function*)
+  val to_string  : t -> string
+
+end;;
+  *)
+ 
+
 
 module type Orthogonalizable = sig
   (*Type of complex numbers*)
@@ -88,30 +185,43 @@ end;;
 
 
 module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) : Orthogonalizable with type vect=H.vect with type ct = C.t= struct
+
+  module Dsl = HilbertSpaceDSL (C) (H);;
+
   type ct=C.t
   type vect=H.vect
-  let orthogonalize2 x y = 
-    let proj u v = H.scalarmul (C.mul (H.innerprod u v) (C.inv (H.innerprod u u))) u in
-    let normalize u = H.scalarmul (C.inv (H.norm u)) u in
+  let orthogonalize2 x_ y_ = 
+    Dsl.(
+    let x = vect_to_t x_ in 
+    let y = vect_to_t y_ in 
+    let ip = innerprod in
+    let proj u v = ((ip u v) / (ip u u))*u in
+    let normalize u = u / (norm u) in
     let nx = normalize x in
-    let ey = H.add y (H.scalarmul (C.neg C.one) (proj x y)) in
+    let ey = y - (proj x y) in
     let ny = normalize ey in
-    [nx;ny]
+    List.map vect_from_t [nx;ny]
+    )
 
 
-  let orthogonalize xs = 
-    let normalize u = H.scalarmul (C.inv (H.norm u)) u in
+  let orthogonalize xs_ = 
+    let m = Array.length xs_ in
+    let n = m-1 in
+    let min1 k = k-1 in
+    Dsl.(
+    let xs = Array.map vect_to_t xs_ in
     let m = Array.length xs in
     let qs=xs in
-    for k = 0 to (m-1) do
+    for k = 0 to n do
       let w = ref xs.(k) in
-      for j = 0 to (k-1) do
-        let rjk = H.innerprod (!w) qs.(j) in
-        w := H.add (!w) (H.scalarmul (C.neg rjk) qs.(j));
+      for j = 0 to (min1 k) do
+        let rjk = innerprod (!w) qs.(j) in
+        w := (!w) - rjk*qs.(j)
       done;
-      qs.(k) <- normalize !w
+      qs.(k) <- !w / (norm !w)
     done;
-    qs
+    (Array.map vect_from_t qs)
+    )
 
 
   let qr xs_ = 
