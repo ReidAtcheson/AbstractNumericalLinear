@@ -62,6 +62,10 @@ module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) =
 
   type t = Vect of H.vect | Num of H.ct
 
+  let num_to_t n  = Num n
+  let num_from_t n = match n with
+    Vect v -> raise (Failure "Expected a number")
+  | Num  c -> c
   let vect_to_t x = Vect x
   let vect_from_t x = match x with
     Vect v -> v
@@ -69,6 +73,32 @@ module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) =
 
 
 
+
+  (*Complex number members*)
+  (*Complex conjugate*)
+  let conj n = match n with
+      Vect v -> raise (Failure "Expects numbers")
+    | Num  c -> Num (C.conj c)
+  (*Square root*)
+  let sqrt n = match n with
+      Vect v -> raise (Failure "Expects numbers")
+    | Num  c -> Num (C.sqrt c)
+  (*Complex absolute value*)
+  let abs n = match n with
+      Vect v -> raise (Failure "Expects numbers")
+    | Num  c -> Num (C.abs c)
+  (*Additive identity*)
+  let zero = Num (C.zero)
+  (*Multiplicative identity*)
+  let one = Num (C.one)
+  let almost_equal m n tol = match m,n with
+    Num c,Num d -> C.almost_equal c d tol
+   |    _,_       -> raise (Failure "Expects numbers")
+
+
+
+
+  (*Hilbert space members*)
   let nullvector = Vect (H.nullvector)
   let basis i = Vect (H.basis i)
   let innerprod x y = match x,y with
@@ -184,6 +214,7 @@ module type Operator = sig
 end;;
 
 
+
 module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) : Orthogonalizable with type vect=H.vect with type ct = C.t= struct
 
   module Dsl = HilbertSpaceDSL (C) (H);;
@@ -249,6 +280,33 @@ module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C
 end;;
 
 
+module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) = struct
+  module Dsl = HilbertSpaceDSL (C) (H);;
+
+  let test_nullvector = 
+    Dsl.(
+      let z = nullvector in
+      let b = basis 3 in
+      let res = z+b in
+      let err = norm (res - b) in
+      let is_correct = almost_equal err zero 1e-5 in
+      if (is_correct) then (print_endline "PASS: nullvector") else (print_endline "FAIL: nullvector")
+    )
+  let test_lincomb = 
+    Dsl.(
+      let two = one + one in
+      let three = two + one in
+      let b1 = basis 3 in
+      let b2 = basis 4 in
+      let orig = two*(b1 + b2) in
+      let expand = two*b1 + two*b2 in
+      let err = norm (orig - expand) in
+      let is_correct = almost_equal err zero 1e-5 in
+      if (is_correct) then (print_endline "PASS: linear combinations") else (print_endline "FAIL: linear combinations")
+    )
+
+
+end;;
 
 
 
