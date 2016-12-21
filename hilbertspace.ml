@@ -153,38 +153,6 @@ module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) =
 
 end;;
 
-  (*
-module HilbertSpaceDSL (H : HilbertSpace) = struct
-  type t = Vect of H.vect | Num of H.ct 
-  (*Null vector*)
-  let nullvector : t = Vect H.nullvector
-  (*Basis functions. basis i = i-th basis function*)
-  let basis i = Vect (H.basis i)
-  (*Scalar multiplication: constant times a vector*) 
-  let ( * ) x y = match x with
-    Vect u -> (match y with
-               Vect v -> Vect v
-              | Num  a -> (H.mul a u) )
-  | Num a  -> (match y with
-               Vect v -> (H.mul a v)
-              | Num a -> Num a )
-  (*Vector addition*)
-  (*val       add  : t -> t -> t*)
-  let (+) x y = match x with
-    Vect u -> (match y with
-              Vect v -> (H.add u v))
-
-  (*Inner product*)
-  val innerprod  : t -> t -> t
-  (*Vector Norm*)
-  val norm       : t -> t
-  (*Convenience printing function*)
-  val to_string  : t -> string
-
-end;;
-  *)
- 
-
 
 module type Orthogonalizable = sig
   (*Type of complex numbers*)
@@ -292,7 +260,7 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
       let is_correct = almost_equal err zero 1e-5 in
       if (is_correct) then (print_endline "PASS: nullvector") else (print_endline "FAIL: nullvector")
     )
-  let test_lincomb = 
+  let test_lincomb1 = 
     Dsl.(
       let two = one + one in
       let three = two + one in
@@ -302,8 +270,90 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
       let expand = two*b1 + two*b2 in
       let err = norm (orig - expand) in
       let is_correct = almost_equal err zero 1e-5 in
-      if (is_correct) then (print_endline "PASS: linear combinations") else (print_endline "FAIL: linear combinations")
+      if (is_correct) then (print_endline "PASS: linear combinations 1") else (print_endline "FAIL: linear combinations 1")
     )
+  let test_lincomb2 = 
+    Dsl.(
+      let two = one + one in
+      let three = two + one in
+      let two_thirds = two / three in
+      let b1 = basis 3 in
+      let b2 = basis 4 in
+      let orig = two_thirds*(b1 + b2) in
+      let expand = two_thirds*b1 + two_thirds*b2 in
+      let err = norm (orig - expand) in
+      let is_correct = almost_equal err zero 1e-5 in
+      if (is_correct) then (print_endline "PASS: linear combinations 2") else (print_endline "FAIL: linear combinations 2")
+    )
+
+  let test_lincomb3 = 
+    Dsl.(
+      let two = one + one in
+      let three = two + one in
+      let two_thirds = two / three in
+      let b1 = basis 3 in
+      let b2 = basis 4 in
+      let b  = b2 - b1 in
+      let orig = two_thirds*(b + b) in
+      let expand = two_thirds*b + two_thirds*b in
+      let err = norm (orig - expand) in
+      let is_correct = almost_equal err zero 1e-5 in
+      if (is_correct) then (print_endline "PASS: linear combinations 3") else (print_endline "FAIL: linear combinations 3")
+    )
+
+  let test_lincomb4 = 
+    Dsl.(
+      let two = one + one in
+      let three = two + one in
+      let i = sqrt (zero - one) in
+      let two_thirds = two / three in
+      let z = (two/three) + (three/two)*i in
+      let b1 = basis 3 in
+      let b2 = basis 4 in
+      let b  = b2 - b1 in
+      let orig = z*(b + b) in
+      let expand = z*b + z*b in
+      let err = norm (orig - expand) in
+      let is_correct = almost_equal err zero 1e-5 in
+      if (is_correct) then (print_endline "PASS: linear combinations 4") else (print_endline "FAIL: linear combinations 4")
+    )
+
+  let test_norm1 = 
+    Dsl.(
+      let two = one+one in
+      let three = two + one in
+      let i = sqrt (zero - one) in
+      let two_thirds = two / three in
+      let z = (two/three) + (three/two)*i in
+      let b1 = basis 3 in
+      let b2 = basis 4 in
+      let b  = z*(b2 - b1) in
+      let res = norm (b/(norm b)) in
+      let is_correct = almost_equal res one 1e-5 in
+      if (is_correct) then (print_endline "PASS: norm 1") else (print_endline "FAIL: norm 1")
+    )
+
+  let test_norm_homogeneous = 
+    Dsl.(
+      let two = one+one in
+      let three = two + one in
+      let i = sqrt (zero - one) in
+      let two_thirds = two / three in
+      let z = (two/three) + (three/two)*i in
+      let b1 = basis 3 in
+      let b2 = basis 4 in
+      let b  = z*(b2 - b1) in
+      let res = norm (z*b) in
+      let hom = (abs z) * norm(b) in
+      let is_correct = almost_equal (res-hom) zero 1e-5 in
+      if (is_correct) then (print_endline "PASS: norm homogeneous") else (print_endline "FAIL: norm homogeneous")
+    )
+
+
+
+
+
+
 
 
 end;;
