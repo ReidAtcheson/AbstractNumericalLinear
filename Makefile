@@ -1,11 +1,14 @@
 
-all : floatarrays polynomials
+all : floatarrays polynomials infinite
+
+infinite : 
+	ocamlbuild  'infinite.native'
 
 floatarrays : 
-	ocamlbuild -tag annot 'floatarrays.native'
+	ocamlbuild   'floatarrays.native'
 
 polynomials : 
-	ocamlbuild  -tag annot 'polynomials.native'
+	ocamlbuild   'polynomials.native'
 
 
 

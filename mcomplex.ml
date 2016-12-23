@@ -52,6 +52,9 @@ module FloatComplex : ComplexNumber with type ret=float with type imt=float  =
 
     let to_string z = (string_of_float (re z)) ^ " + " ^ (string_of_float (im z)) ^ "i"
 
+    let real r = mk r 0.0
+    let imag i = mk 0.0 i
+
 
 
   end

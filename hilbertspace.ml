@@ -31,8 +31,13 @@ module type ComplexNumber = sig
   val one  : t
   val almost_equal : t -> t -> float -> bool
 
-  (* "to_string" convenience function*)
+
+  (*Convenience functions *)
+  (* Convert complex number to string*)
   val to_string : t -> string
+  (*Specify complex number approximately with floats*)
+  val real : float -> t
+  val imag : float -> t
 end;;
 
 
@@ -114,6 +119,9 @@ module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) =
   let to_string x = match x with
      Vect u -> H.to_string u
     |Num  c -> C.to_string c
+
+  let real r = Num (C.real r)
+  let imag i = Num (C.imag i)
 
 
 
@@ -248,8 +256,17 @@ module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C
 end;;
 
 
+
+
+
 module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) = struct
+
   module Dsl = HilbertSpaceDSL (C) (H);;
+
+
+  let () = Random.init 472398 
+  let zr  = (Random.float 10.0) -. (Random.float 10.0)
+  let zi  = (Random.float 10.0) -. (Random.float 10.0)
 
   let test_nullvector = 
     Dsl.(
@@ -260,27 +277,29 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
       let is_correct = almost_equal err zero 1e-5 in
       if (is_correct) then (print_endline "PASS: nullvector") else (print_endline "FAIL: nullvector")
     )
+
+
   let test_lincomb1 = 
     Dsl.(
-      let two = one + one in
-      let three = two + one in
+      let z = (real zr)  + (imag zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
-      let orig = two*(b1 + b2) in
-      let expand = two*b1 + two*b2 in
+      let orig = z*(b1 + b2) in
+      let expand = z*b1 + z*b2 in
       let err = norm (orig - expand) in
       let is_correct = almost_equal err zero 1e-5 in
       if (is_correct) then (print_endline "PASS: linear combinations 1") else (print_endline "FAIL: linear combinations 1")
     )
+
+
+
   let test_lincomb2 = 
     Dsl.(
-      let two = one + one in
-      let three = two + one in
-      let two_thirds = two / three in
+      let z = (real zr)  + (imag zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
-      let orig = two_thirds*(b1 + b2) in
-      let expand = two_thirds*b1 + two_thirds*b2 in
+      let orig = z*(b1 + b2) in
+      let expand = z*b1 + z*b2 in
       let err = norm (orig - expand) in
       let is_correct = almost_equal err zero 1e-5 in
       if (is_correct) then (print_endline "PASS: linear combinations 2") else (print_endline "FAIL: linear combinations 2")
@@ -288,14 +307,12 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
 
   let test_lincomb3 = 
     Dsl.(
-      let two = one + one in
-      let three = two + one in
-      let two_thirds = two / three in
+      let z = (real zr)  + (imag zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
       let b  = b2 - b1 in
-      let orig = two_thirds*(b + b) in
-      let expand = two_thirds*b + two_thirds*b in
+      let orig = z*(b + b) in
+      let expand = z*b + z*b in
       let err = norm (orig - expand) in
       let is_correct = almost_equal err zero 1e-5 in
       if (is_correct) then (print_endline "PASS: linear combinations 3") else (print_endline "FAIL: linear combinations 3")
@@ -303,11 +320,7 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
 
   let test_lincomb4 = 
     Dsl.(
-      let two = one + one in
-      let three = two + one in
-      let i = sqrt (zero - one) in
-      let two_thirds = two / three in
-      let z = (two/three) + (three/two)*i in
+      let z = (real zr)  + (imag zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
       let b  = b2 - b1 in
@@ -320,11 +333,7 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
 
   let test_norm1 = 
     Dsl.(
-      let two = one+one in
-      let three = two + one in
-      let i = sqrt (zero - one) in
-      let two_thirds = two / three in
-      let z = (two/three) + (three/two)*i in
+      let z = (real zr)  + (imag zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
       let b  = z*(b2 - b1) in
@@ -335,11 +344,7 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
 
   let test_norm_homogeneous = 
     Dsl.(
-      let two = one+one in
-      let three = two + one in
-      let i = sqrt (zero - one) in
-      let two_thirds = two / three in
-      let z = (two/three) + (three/two)*i in
+      let z = (real zr)  + (imag zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
       let b  = z*(b2 - b1) in
@@ -348,12 +353,6 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
       let is_correct = almost_equal (res-hom) zero 1e-5 in
       if (is_correct) then (print_endline "PASS: norm homogeneous") else (print_endline "FAIL: norm homogeneous")
     )
-
-
-
-
-
-
 
 
 end;;

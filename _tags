@@ -1,0 +1,2 @@
+"deps" : include
+true : optimize(3)
