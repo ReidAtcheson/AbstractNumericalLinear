@@ -119,7 +119,6 @@ end;;
 
 module MyOp   = MakeOperatorSpace (FloatComplex) (PolynomialHilbert) (PolynomialHilbert)
 module MyOrth = MakeOrthogonalizable (FloatComplex) (PolynomialHilbert)
-module TestPolynomial = TestHilbertSpace (FloatComplex) (PolynomialHilbert)
   
 
 
@@ -149,46 +148,5 @@ let ip2  = PolynomialHilbert.innerprod ((x<*>x<*>x<+>x)) (adjdiff (x<*>x<+>x))
 
 
 
-
-let () = 
-  print_endline "TESTING OPERATOR NORMS"
-;;
-
-let start = Unix.gettimeofday ()
-
-let () = 
-  let i = 1 in 
-  let ndiffrt   = MyOp.opnorm 100 i diff in
-  let ndiff     = FloatComplex.mul (ndiffrt) (ndiffrt) in
-  let correct = FloatComplex.almost_equal ndiff (FloatComplex.mk 3.0 0.0) (1e-5) in
-  if correct then (print_endline "Derivative at i=1 correct (PASS)") else (print_endline "Derivative at i=1 incorrect (FAIL)")
-;;
-
-let () = 
-  let i = 2 in 
-  let ndiffrt   = MyOp.opnorm 100 i diff in
-  let ndiff     = FloatComplex.mul (ndiffrt) (ndiffrt) in
-  let correct = FloatComplex.almost_equal ndiff (FloatComplex.mk 15.0 0.0) (1e-5) in
-  if correct then (print_endline "Derivative at i=2 correct (PASS)") else (print_endline "Derivative at i=2 incorrect (FAIL)")
-;;
-
-let () = 
-  let i = 3 in 
-  let ndiffrt   = MyOp.opnorm 100 i diff in
-  let ndiff     = FloatComplex.mul (ndiffrt) (ndiffrt) in
-  let correct = FloatComplex.almost_equal ndiff (FloatComplex.mk 42.53122 0.0) (1e-5) in
-  if correct then (print_endline "Derivative at i=3 correct (PASS)") else (print_endline "Derivative at i=3 incorrect (FAIL)")
-;;
-
-let () = 
-  let i = 4 in 
-  let ndiffrt   = MyOp.opnorm 100 i diff in
-  let ndiff     = FloatComplex.mul (ndiffrt) (ndiffrt) in
-  let correct = FloatComplex.almost_equal ndiff (FloatComplex.mk 95.058782 0.0) (1e-5) in
-  if correct then (print_endline "Derivative at i=4 correct (PASS)") else (print_endline "Derivative at i=4 incorrect (FAIL)");
-;;
-
-let stop = Unix.gettimeofday ()
-let () = Printf.printf "Execution time: %fs\n%!" (stop -. start)
 
 

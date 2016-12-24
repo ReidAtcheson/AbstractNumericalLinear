@@ -1,5 +1,9 @@
+all : floatarrays polynomials infinite bench test
 
-all : floatarrays polynomials infinite
+bench : 
+	ocamlbuild  -pkg unix 'bench.native'
+test : 
+	ocamlbuild 'test.native'
 
 infinite : 
 	ocamlbuild  'infinite.native'
@@ -16,7 +20,7 @@ polynomials :
 
 
 
-.PHONY : clean floatarrays polynomials
+.PHONY : clean 
 
 
 

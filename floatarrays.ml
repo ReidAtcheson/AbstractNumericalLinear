@@ -39,7 +39,6 @@ end;;
 
 module MyOrth = MakeOrthogonalizable (FloatComplex) (ArrayHilbert)
 module MyOp   = MakeOperatorSpace    (FloatComplex) (ArrayHilbert) (ArrayHilbert)
-module FloatArrayTest = TestHilbertSpace (FloatComplex) (ArrayHilbert)
 
 
 

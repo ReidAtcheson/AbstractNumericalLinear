@@ -24,10 +24,7 @@ end;;
 
 module MyOp   = MakeOperatorSpace (Real) (FunctionHilbert) (FunctionHilbert)
 module MyOrth = MakeOrthogonalizable (Real) (FunctionHilbert)
-module TestFunction = TestHilbertSpace (Real) (FunctionHilbert)
-
-
-(*Compute operator norm of linear operator Af = sin*f*)
 let a f = fun x -> (sin x) *. (f x)
-let opnorm = MyOp.opnorm 150 8 a
-let () = print_endline (Real.to_string opnorm)
+
+
+
