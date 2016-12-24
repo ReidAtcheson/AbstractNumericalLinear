@@ -121,32 +121,12 @@ module MyOp   = MakeOperatorSpace (FloatComplex) (PolynomialHilbert) (Polynomial
 module MyOrth = MakeOrthogonalizable (FloatComplex) (PolynomialHilbert)
   
 
+let count_diff = ref 0
 
 let rec diff p = 
+  let () = count_diff := !count_diff + 1 in
   match p with
     Val z       -> Val (FloatComplex.mk 0.0 0.0)
   | Var         -> Val (FloatComplex.mk 1.0 0.0)
   | Add (p1,p2) -> Add ((diff p1),(diff p2))
   | Mul (p1,p2) -> Add ((Mul ((diff p1),p2)),(Mul (p1,(diff p2))))
-
-let mk z        = Val z
-let x           = Var
-let (<+>) p1 p2 = Add (p1,p2)
-let (<*>) p1 p2 = Mul (p1,p2)
-
-
-
-
-
-let adjdiff = MyOp.adj 6 diff
-(*let orth = MyOrth.orthogonalize (Array.of_list [mk (FloatComplex.mk 1.0 0.0); x;(x <*> x)])*)
-
-let sadj = normal (adjdiff x<*>x)
-
-let ip1  = PolynomialHilbert.innerprod (diff (x<*>x<*>x<+>x)) (x<*>x<+>x)
-let ip2  = PolynomialHilbert.innerprod ((x<*>x<*>x<+>x)) (adjdiff (x<*>x<+>x))
-
-
-
-
-
