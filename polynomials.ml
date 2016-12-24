@@ -121,10 +121,8 @@ module MyOp   = MakeOperatorSpace (FloatComplex) (PolynomialHilbert) (Polynomial
 module MyOrth = MakeOrthogonalizable (FloatComplex) (PolynomialHilbert)
   
 
-let count_diff = ref 0
 
 let rec diff p = 
-  let () = count_diff := !count_diff + 1 in
   match p with
     Val z       -> Val (FloatComplex.mk 0.0 0.0)
   | Var         -> Val (FloatComplex.mk 1.0 0.0)
