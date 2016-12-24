@@ -63,18 +63,23 @@ module type HilbertSpace = sig
   val to_string  : vect -> string
 end;;
 
-module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) = struct
 
-  type t = Vect of H.vect | Num of H.ct
+module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t)  = struct
+
+  type t = 
+    | Vect of H.vect 
+    | Num of H.ct
 
   let num_to_t n  = Num n
   let num_from_t n = match n with
-    Vect v -> raise (Failure "Expected a number")
-  | Num  c -> c
+    Num  c -> c
+  | _ -> raise (Failure "Expected a number")
+
+
   let vect_to_t x = Vect x
   let vect_from_t x = match x with
-    Vect v -> v
-  | Num  c -> raise (Failure "Expected a vector")
+   Vect  v -> v
+  | _ -> raise (Failure "Expected a vector")
 
 
 
@@ -82,16 +87,16 @@ module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) =
   (*Complex number members*)
   (*Complex conjugate*)
   let conj n = match n with
-      Vect v -> raise (Failure "Expects numbers")
-    | Num  c -> Num (C.conj c)
+       Num  c -> Num (C.conj c)
+    | _ -> raise (Failure "Expected a number")
   (*Square root*)
   let sqrt n = match n with
-      Vect v -> raise (Failure "Expects numbers")
-    | Num  c -> Num (C.sqrt c)
+     Num  c -> Num (C.sqrt c)
+    | _ -> raise (Failure "Expected a number")
   (*Complex absolute value*)
   let abs n = match n with
-      Vect v -> raise (Failure "Expects numbers")
-    | Num  c -> Num (C.abs c)
+      Num  c -> Num (C.abs c)
+    | _ -> raise (Failure "Expected a number")
   (*Additive identity*)
   let zero = Num (C.zero)
   (*Multiplicative identity*)
@@ -107,18 +112,17 @@ module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) =
   let nullvector = Vect (H.nullvector)
   let basis i = Vect (H.basis i)
   let innerprod x y = match x,y with
-   Vect u,Vect   v -> Num (H.innerprod u v)
-  | Vect u, Num   c -> raise (Failure "Inner product only supports vectors")
-  | Num  c, Vect  u -> raise (Failure "Inner product only supports vectors")
-  | Num  c, Num   d -> raise (Failure "Inner product only supports vectors")
+    Vect u,Vect   v -> Num (H.innerprod u v)
+  | _,_               -> raise (Failure "Inner product only supports vectors")
 
   let norm x = match x with
-    Vect u -> Num (H.norm u)
-    |Num  c -> raise (Failure "Vector norm attempted of number")
+     Vect u -> Num (H.norm u)
+  | _       -> raise (Failure "Vector norm attempted of non-vector")
 
   let to_string x = match x with
-     Vect u -> H.to_string u
-    |Num  c -> C.to_string c
+      Vect u -> H.to_string u
+    | Num  c  -> C.to_string c
+    | _      -> raise (Failure "No to_string method")
 
   let real r = Num (C.real r)
   let imag i = Num (C.imag i)
@@ -127,30 +131,28 @@ module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) =
 
 
   let ( * ) x y = match x,y with
-    Vect u,Vect   v -> raise (Failure "Tried to multiply two vectors")
-  | Vect u, Num   c -> Vect (H.scalarmul c u)
+    Vect u, Num   c -> Vect (H.scalarmul c u)
   | Num  c, Vect  u -> Vect (H.scalarmul c u)
-  | Num  c, Num   d -> Num  (C.mul c d)
+  | Num  c, Num    d -> Num (C.mul c d)
+  |      _,_         -> raise (Failure "Argument mismatch in *")
 
   let ( + ) x y = match x,y with
-    Vect u,Vect   v -> Vect (H.add u v)
-  | Vect u, Num   c -> raise (Failure "Tried to add number to vector")
-  | Num  c, Vect  u -> raise (Failure "Tried to add number to vector")
-  | Num  c, Num   d -> Num (C.add c d)
+     Vect u,Vect   v -> Vect (H.add u v)
+  |  Num  c, Num     d -> Num (C.add c d)
+  |      _,_           -> raise (Failure "Argument mismatch in +")
 
 
   let ( - ) x y = match x,y with
-    Vect u,Vect   v -> Vect (H.add u (H.scalarmul (C.neg C.one) v))
-  | Vect u, Num   c -> raise (Failure "Tried to add number to vector")
-  | Num  c, Vect  u -> raise (Failure "Tried to add number to vector")
-  | Num  c, Num   d -> Num (C.add c (C.mul (C.neg C.one) d))
+     Vect u,Vect   v -> Vect (H.add u (H.scalarmul (C.neg C.one) v))
+  |  Num  c, Num     d -> Num (C.add c (C.mul (C.neg C.one) d))
+  |      _,_           -> raise (Failure "Argument mismatch in -")
+
 
 
   let ( / ) x y = match x,y with
-    Vect u,Vect   v -> raise (Failure "Attempted to divide one vector into another vector")
-  | Vect u, Num   c -> Vect (H.scalarmul (C.inv c) u)
-  | Num  c, Vect  u -> raise (Failure "Attempted to divide number by vector")
-  | Num  c, Num   d -> Num (C.mul (C.inv d) c)
+    Vect u, Num   c ->  Vect (H.scalarmul (C.inv c) u)
+  | Num   c, Num   d ->  Num (C.mul (C.inv d) c)
+  |       _,_        ->  raise (Failure "Argument mismatch in /")
 
 
 
@@ -193,42 +195,31 @@ end;;
 
 module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) : Orthogonalizable with type vect=H.vect with type ct = C.t= struct
 
-  module Dsl = HilbertSpaceDSL (C) (H);;
 
   type ct=C.t
   type vect=H.vect
-  let orthogonalize2 x_ y_ = 
-    Dsl.(
-    let x = vect_to_t x_ in 
-    let y = vect_to_t y_ in 
-    let ip = innerprod in
-    let proj u v = ((ip u v) / (ip u u))*u in
-    let normalize u = u / (norm u) in
+  let orthogonalize2 x y = 
+    let proj u v = H.scalarmul (C.mul (H.innerprod u v) (C.inv (H.innerprod u u))) u in
+    let normalize u = H.scalarmul (C.inv (H.norm u)) u in
     let nx = normalize x in
-    let ey = y - (proj x y) in
+    let ey = H.add y (H.scalarmul (C.neg C.one) (proj x y)) in
     let ny = normalize ey in
-    List.map vect_from_t [nx;ny]
-    )
+    [nx;ny]
 
 
-  let orthogonalize xs_ = 
-    let m = Array.length xs_ in
-    let n = m-1 in
-    let min1 k = k-1 in
-    Dsl.(
-    let xs = Array.map vect_to_t xs_ in
+  let orthogonalize xs = 
+    let normalize u = H.scalarmul (C.inv (H.norm u)) u in
     let m = Array.length xs in
     let qs=xs in
-    for k = 0 to n do
+    for k = 0 to (m-1) do
       let w = ref xs.(k) in
-      for j = 0 to (min1 k) do
-        let rjk = innerprod (!w) qs.(j) in
-        w := (!w) - rjk*qs.(j)
+      for j = 0 to (k-1) do
+        let rjk = H.innerprod (!w) qs.(j) in
+        w := H.add (!w) (H.scalarmul (C.neg rjk) qs.(j));
       done;
-      qs.(k) <- !w / (norm !w)
+      qs.(k) <- normalize !w
     done;
-    (Array.map vect_from_t qs)
-    )
+    qs
 
 
   let qr xs_ = 
@@ -261,7 +252,7 @@ end;;
 
 module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) = struct
 
-  module Dsl = HilbertSpaceDSL (C) (H);;
+  module Dsl = HilbertSpaceDSL (C) (H) ;;
 
 
   let () = Random.init 472398 
