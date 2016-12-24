@@ -41,10 +41,7 @@ module FloatComplex : ComplexNumber with type ret=float with type imt=float  =
       sqrt (mul (conj c) c)
 
 
-    let almost_equal a b (tol:float) = 
-      let  e = compare (re (abs (add (neg b) a))) tol in          
-      e<=0
-    ;;
+    let almost_equal a b (tol:float) = (re (abs (add (neg b) a))) < tol
       
 
     let zero   = {re=0.0;im=0.0}

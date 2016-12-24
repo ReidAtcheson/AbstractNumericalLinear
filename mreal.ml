@@ -26,11 +26,8 @@ module Real : ComplexNumber with type t=float with type ret=float with type imt=
     let abs    = abs_float 
 
 
-    let almost_equal a b (tol:float) = 
-      let  e = compare (re (abs (add (neg b) a))) tol in          
-      e<=0
-    ;;
-      
+    let almost_equal a b (tol:float) = (re (abs (add (neg b) a))) < tol
+  
 
     let zero   = 0.0
     let one    = 1.0
