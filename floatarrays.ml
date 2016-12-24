@@ -21,7 +21,8 @@ module ArrayHilbert : HilbertSpace with type vect=FloatComplex.t array with type
   let add x y = Array.map2 (FloatComplex.add) x y
 
   let innerprod  x y = 
-    let xy = Array.map2 (FloatComplex.mul) x y in
+    let conjy = Array.map (FloatComplex.conj) y in
+    let xy = Array.map2 (FloatComplex.mul) x (conjy) in
     Array.fold_left (FloatComplex.add) (FloatComplex.zero) xy
   ;;
 

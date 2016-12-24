@@ -359,14 +359,16 @@ module MakeOperatorSpace (C : ComplexNumber) (H1 : HilbertSpace with type ct=C.t
   type vect1 = H1.vect
   type vect2 = H2.vect
 
-  let adj (n:int) (a:vect1->vect2) (u:vect2) = 
+  let adj (n:int) (a:vect1->vect2) = 
     let bs  = Array.make (n+1) (H1.nullvector) in
     for i = 0 to n do
       bs.(i) <- H1.basis i;
     done;
     let obs = Orth1.orthogonalize bs in
-    let l v = H2.innerprod (a v) u in
-    let ls  = Array.map l obs in
+    let avs = Array.map a obs in
+    fun u ->
+    let l av = H2.innerprod (av) u in
+    let ls  = Array.map l avs in
     let cls = Array.map C.conj ls in
     let ccls = Array.map2 H1.scalarmul cls obs in
     let z    = Array.fold_left H1.add H1.nullvector ccls in

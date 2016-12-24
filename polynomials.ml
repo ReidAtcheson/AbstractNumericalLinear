@@ -154,6 +154,8 @@ let () =
   print_endline "TESTING OPERATOR NORMS"
 ;;
 
+let start = Unix.gettimeofday ()
+
 let () = 
   let i = 1 in 
   let ndiffrt   = MyOp.opnorm 100 i diff in
@@ -185,3 +187,8 @@ let () =
   let correct = FloatComplex.almost_equal ndiff (FloatComplex.mk 95.058782 0.0) (1e-5) in
   if correct then (print_endline "Derivative at i=4 correct (PASS)") else (print_endline "Derivative at i=4 incorrect (FAIL)");
 ;;
+
+let stop = Unix.gettimeofday ()
+let () = Printf.printf "Execution time: %fs\n%!" (stop -. start)
+
+
