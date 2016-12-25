@@ -25,6 +25,7 @@ end;;
 module MyOp   = MakeOperatorSpace (Real) (FunctionHilbert) (FunctionHilbert)
 module MyOrth = MakeOrthogonalizable (Real) (FunctionHilbert)
 let a f = fun x -> (sin x) *. (f x)
+let k f = fun x -> Quad.gkint (fun y->(sin (y-.x)) *. (f y)) (-1.0) (1.0) (1e-6)
 
 
 

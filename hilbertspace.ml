@@ -178,7 +178,7 @@ module type Orthogonalizable = sig
 end;;
 
 
-module type Operator = sig
+module type OperatorSpace = sig
   (*Type of complex numbers*)
   type ct
   (*Type of input vectors*)
@@ -190,6 +190,21 @@ module type Operator = sig
   (*Compute operator norm of linear operator*)
   val opnorm         : int -> int -> (vect1 -> vect2) -> ct
 end;;
+
+module type SquareOperatorSpace = sig
+  (*Type of complex numbers*)
+  type ct
+  (*Type of input vectors*)
+  type vect
+  (*Type of output vectors*)
+  (*Compute adjoint of linear operator*)
+  val adj            : int -> (vect -> vect) -> vect -> vect
+  (*Compute operator norm of linear operator*)
+  val opnorm         : int -> int -> (vect -> vect) -> ct
+  (*Run QR iteration: ideally results in eigenvalues*)
+  val qriters        : int -> int -> (vect -> vect) -> ct array
+end;;
+
 
 
 
@@ -350,7 +365,7 @@ end;;
 
 
 
-module MakeOperatorSpace (C : ComplexNumber) (H1 : HilbertSpace with type ct=C.t) (H2 : HilbertSpace with type ct=C.t) : Operator with type vect1=H1.vect with type vect2=H2.vect with type ct = C.t = struct
+module MakeOperatorSpace (C : ComplexNumber) (H1 : HilbertSpace with type ct=C.t) (H2 : HilbertSpace with type ct=C.t) : OperatorSpace with type vect1=H1.vect with type vect2=H2.vect with type ct = C.t = struct
 
 
   module Orth1 = MakeOrthogonalizable (C) (H1)
@@ -396,9 +411,53 @@ module MakeOperatorSpace (C : ComplexNumber) (H1 : HilbertSpace with type ct=C.t
 
 
 
-
 end;;
 
+(*
+module type SquareOperatorSpace = sig
+  (*Type of complex numbers*)
+  type ct
+  (*Type of input vectors*)
+  type vect
+  (*Type of output vectors*)
+  (*Compute adjoint of linear operator*)
+  val adj            : int -> (vect -> vect) -> vect -> vect
+  (*Compute operator norm of linear operator*)
+  val opnorm         : int -> int -> (vect -> vect) -> ct
+  (*Run QR iteration: ideally results in eigenvalues*)
+  val qriters        : int -> int -> (vect -> vect) -> ct array
+end;;
+*)
+
+module MakeSquareOperatorSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) : SquareOperatorSpace with type vect=H.vect with type ct = C.t = struct
+  type vect = H.vect
+  type ct = C.t
+  module Mop : OperatorSpace with type vect1 = vect with type vect2 = vect  with type ct=ct = MakeOperatorSpace (C) (H) (H);;
+  module Morth =  MakeOrthogonalizable (C) (H)
+  (*Type helpers. Ocaml doesn't quite understand that vect1=vect2*)
+  let vec1_from_vec (u : vect) : Mop.vect1 = u
+  let vec2_from_vec (u : vect) : Mop.vect2 = u
+  let vec_from_vec1 (v : Mop.vect1) : vect = v
+  let vec_from_vec2 (v : Mop.vect2) : vect = v
+  let sq2rect       (a : vect -> vect) : (Mop.vect1 -> Mop.vect2) = 
+    fun u -> vec2_from_vec (a (vec_from_vec1 u))
+  let rect2sq       (a : Mop.vect1 -> Mop.vect2) : (vect -> vect) = 
+    fun u -> vec_from_vec2 (a (vec1_from_vec u))
+  (*End type helpers*)
+
+  let adj n a = rect2sq (Mop.adj n (sq2rect a))
+  let opnorm maxit n a = Mop.opnorm maxit n (sq2rect a)
+  (*Warning: Not complete!*)
+  let qriters maxit n a = 
+    let bs   = Array.init n H.basis in
+    let obs  = ref (Morth.orthogonalize bs) in
+    for i = 0 to maxit do
+      obs := Array.map a (!obs);
+      let (q,r) = (Morth.qr !obs) in
+      obs := q;
+    done;
+    Array.of_list [C.zero]
+end;;
 
 
 
