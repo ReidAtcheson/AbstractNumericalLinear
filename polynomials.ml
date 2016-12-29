@@ -99,7 +99,12 @@ let rec string_of_poly p =
 let rec string_of_poly_list ps =  List.fold_left (fun p1 p2 -> p1 ^" + "^ p2) "" (List.map string_of_poly ps)
 
 
-
+let rec diff p = 
+  match p with
+    Val z       -> Val (FloatComplex.mk 0.0 0.0)
+  | Var         -> Val (FloatComplex.mk 1.0 0.0)
+  | Add (p1,p2) -> Add ((diff p1),(diff p2))
+  | Mul (p1,p2) -> Add ((Mul ((diff p1),p2)),(Mul (p1,(diff p2))))
   
 module PolynomialHilbert : HilbertSpace with type vect=poly with type ct = FloatComplex.t = struct
   let a=0.0-.1.0
@@ -110,7 +115,8 @@ module PolynomialHilbert : HilbertSpace with type vect=poly with type ct = Float
   let rec basis i = if i==0 then (Val (FloatComplex.mk 1.0 0.0)) else (Mul (basis (i-1), Var))
   let scalarmul s p  = Mul (Val s,p)
   let add x y = filterpoly (Add (x,y))
-  let innerprod p1 p2 = integrate a b (Mul (p1,conj p2))
+  let innerprod p1 p2 = (integrate a b (Mul (p1,conj p2))) 
+(*  let innerprod p1 p2 = FloatComplex.add (integrate a b (Mul (p1,conj p2))) (integrate a b (Mul (diff p1,conj (diff p2))))*)
   let norm p = FloatComplex.sqrt (innerprod p p)
 
   let to_string p = string_of_poly p
