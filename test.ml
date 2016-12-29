@@ -1,6 +1,8 @@
 open Hilbertspace;;
 
 let () = print_endline "Testing Function Space Properties"
+module Mreal = Floatreal;;
+module Mcomplex = Floatcomplex;;
 module TestFunction = TestHilbertSpace (Mreal.Real) (Infinite.FunctionHilbert)
 
 
@@ -11,15 +13,16 @@ let () = Infinite.(Mreal.(
   if correct then (print_endline "Function space operator norm correct (PASS) ") else (print_endline "Function space operator norm incorrect (FAIL)")
 ))
 
-let () = Infinite.(Mreal.(
-  (*Compute operator norm of linear operator Af = sin*f*)
-  let opnorm = MyOp.opnorm 150 8 k in
-  print_endline (Real.to_string opnorm)
+(*let () = Infinite.(Mreal.(
+  (*Compute operator norm of a compact *)
+  let opnorm  = MyOp.opnorm 150 8 k in
+  let eigvals = MySqOp.qriters 5 5 k in
+  (*print_endline (Real.to_string opnorm)*)
   (*
   let correct = Real.almost_equal opnorm (0.83) (0.1) in
   if correct then (print_endline "Function space operator norm correct (PASS) ") else (print_endline "Function space operator norm incorrect (FAIL)")
   *)
-))
+))*)
 
 
 

@@ -1,6 +1,5 @@
 open Hilbertspace;;
-open Mcomplex;;
-
+module FloatComplex = Floatcomplex.FloatComplex
 
 module ArrayHilbert : HilbertSpace with type vect=FloatComplex.t array with type ct = FloatComplex.t = struct
   let m=5

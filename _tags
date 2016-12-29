@@ -1,2 +1,3 @@
 "deps" : include
+"deps/gencomplex" : include
 true : optimize(3)

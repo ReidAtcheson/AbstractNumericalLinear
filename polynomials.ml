@@ -1,6 +1,6 @@
 
 open Hilbertspace;;
-open Mcomplex;;
+module FloatComplex = Floatcomplex.FloatComplex
 
 
 

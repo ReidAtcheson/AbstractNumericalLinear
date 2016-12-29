@@ -1,47 +1,3 @@
-module type ComplexNumber = sig  
-  (*Type for real part*)
-  type ret
-  (*Type for imaginary part*)
-  type imt
-  (*Type for complex number*)
-  type t
-  (*Make a complex number out of real and imaginary parts*)
-  val mk : ret -> imt -> t
-  (*Real part of complex number*)
-  val re : t -> ret
-  (*Imaginary part of complex number*)
-  val im : t -> imt
-  (*Complex conjugate*)
-  val conj  : t -> t
-  (*Multiplication*)
-  val  mul  : t -> t -> t
-  (*Addition*)
-  val  add  : t -> t -> t
-  (*Multiplicative inverse*)
-  val  inv  : t -> t
-  (*Additive inverse*)
-  val  neg  : t -> t
-  (*Square root*)
-  val sqrt : t -> t
-  (*Complex absolute value*)
-  val  abs  : t -> t
-  (*Additive identity*)
-  val zero : t
-  (*Multiplicative identity*)
-  val one  : t
-  val almost_equal : t -> t -> float -> bool
-
-
-  (*Convenience functions *)
-  (* Convert complex number to string*)
-  val to_string : t -> string
-  (*Specify complex number approximately with floats*)
-  val real : float -> t
-  val imag : float -> t
-end;;
-
-
-
 module type HilbertSpace = sig
   (*Vector type*)
   type vect
@@ -64,7 +20,7 @@ module type HilbertSpace = sig
 end;;
 
 
-module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t)  = struct
+module HilbertSpaceDSL (C : Gencomplex.Sig) (H : HilbertSpace with type ct=C.t)  = struct
 
   type t = 
     | Vect of H.vect 
@@ -122,10 +78,9 @@ module HilbertSpaceDSL (C : ComplexNumber) (H : HilbertSpace with type ct=C.t)  
   let to_string x = match x with
       Vect u -> H.to_string u
     | Num  c  -> C.to_string c
-    | _      -> raise (Failure "No to_string method")
 
-  let real r = Num (C.real r)
-  let imag i = Num (C.imag i)
+  let re r = Num (C.re r)
+  let im i = Num (C.im i)
 
 
 
@@ -208,7 +163,7 @@ end;;
 
 
 
-module MakeOrthogonalizable (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) : Orthogonalizable with type vect=H.vect with type ct = C.t= struct
+module MakeOrthogonalizable (C : Gencomplex.Sig) (H : HilbertSpace with type ct=C.t) : Orthogonalizable with type vect=H.vect with type ct = C.t= struct
 
 
   type ct=C.t
@@ -265,7 +220,7 @@ end;;
 
 
 
-module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) = struct
+module TestHilbertSpace (C : Gencomplex.Sig) (H : HilbertSpace with type ct=C.t) = struct
 
   module Dsl = HilbertSpaceDSL (C) (H) ;;
 
@@ -287,7 +242,7 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
 
   let test_lincomb1 = 
     Dsl.(
-      let z = (real zr)  + (imag zi) in
+      let z = (re zr)  + (im zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
       let orig = z*(b1 + b2) in
@@ -301,7 +256,7 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
 
   let test_lincomb2 = 
     Dsl.(
-      let z = (real zr)  + (imag zi) in
+      let z = (re zr)  + (im zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
       let orig = z*(b1 + b2) in
@@ -313,7 +268,7 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
 
   let test_lincomb3 = 
     Dsl.(
-      let z = (real zr)  + (imag zi) in
+      let z = (re zr)  + (im zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
       let b  = b2 - b1 in
@@ -326,7 +281,7 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
 
   let test_lincomb4 = 
     Dsl.(
-      let z = (real zr)  + (imag zi) in
+      let z = (re zr)  + (im zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
       let b  = b2 - b1 in
@@ -339,7 +294,7 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
 
   let test_norm1 = 
     Dsl.(
-      let z = (real zr)  + (imag zi) in
+      let z = (re zr)  + (im zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
       let b  = z*(b2 - b1) in
@@ -350,7 +305,7 @@ module TestHilbertSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) 
 
   let test_norm_homogeneous = 
     Dsl.(
-      let z = (real zr)  + (imag zi) in
+      let z = (re zr)  + (im zi) in
       let b1 = basis 3 in
       let b2 = basis 4 in
       let b  = z*(b2 - b1) in
@@ -365,7 +320,7 @@ end;;
 
 
 
-module MakeOperatorSpace (C : ComplexNumber) (H1 : HilbertSpace with type ct=C.t) (H2 : HilbertSpace with type ct=C.t) : OperatorSpace with type vect1=H1.vect with type vect2=H2.vect with type ct = C.t = struct
+module MakeOperatorSpace (C : Gencomplex.Sig) (H1 : HilbertSpace with type ct=C.t) (H2 : HilbertSpace with type ct=C.t) : OperatorSpace with type vect1=H1.vect with type vect2=H2.vect with type ct = C.t = struct
 
 
   module Orth1 = MakeOrthogonalizable (C) (H1)
@@ -413,23 +368,8 @@ module MakeOperatorSpace (C : ComplexNumber) (H1 : HilbertSpace with type ct=C.t
 
 end;;
 
-(*
-module type SquareOperatorSpace = sig
-  (*Type of complex numbers*)
-  type ct
-  (*Type of input vectors*)
-  type vect
-  (*Type of output vectors*)
-  (*Compute adjoint of linear operator*)
-  val adj            : int -> (vect -> vect) -> vect -> vect
-  (*Compute operator norm of linear operator*)
-  val opnorm         : int -> int -> (vect -> vect) -> ct
-  (*Run QR iteration: ideally results in eigenvalues*)
-  val qriters        : int -> int -> (vect -> vect) -> ct array
-end;;
-*)
 
-module MakeSquareOperatorSpace (C : ComplexNumber) (H : HilbertSpace with type ct=C.t) : SquareOperatorSpace with type vect=H.vect with type ct = C.t = struct
+module MakeSquareOperatorSpace (C : Gencomplex.Sig) (H : HilbertSpace with type ct=C.t) : SquareOperatorSpace with type vect=H.vect with type ct = C.t = struct
   type vect = H.vect
   type ct = C.t
   module Mop : OperatorSpace with type vect1 = vect with type vect2 = vect  with type ct=ct = MakeOperatorSpace (C) (H) (H);;
@@ -451,12 +391,22 @@ module MakeSquareOperatorSpace (C : ComplexNumber) (H : HilbertSpace with type c
   let qriters maxit n a = 
     let bs   = Array.init n H.basis in
     let obs  = ref (Morth.orthogonalize bs) in
+    obs := Array.map a (!obs);
+    let (qt,rt) = (Morth.qr !obs) in
+    obs := qt;
+    (*
     for i = 0 to maxit do
-      obs := Array.map a (!obs);
+    (*  obs := Array.map a (!obs);
       let (q,r) = (Morth.qr !obs) in
-      obs := q;
+      obs := q;*)
     done;
-    Array.of_list [C.zero]
+    *)
+    obs := Array.map a (!obs);
+    let (q,r) = (Morth.qr !obs) in
+    obs := q;
+    obs := Array.map a (!obs);
+    let (qq,rr) = (Morth.qr !obs) in
+    Array.init n (fun i->rr.(i).(i))
 end;;
 
 
